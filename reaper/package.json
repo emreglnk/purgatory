@@ -1,0 +1,33 @@
+{
+  "name": "purgatory-reaper",
+  "version": "1.0.0",
+  "description": "Automated purging bot for Purgatory dApp",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "indexer": "tsx src/index.ts indexer",
+    "indexer:backfill": "tsx src/index.ts indexer --backfill",
+    "reaper": "tsx src/index.ts reaper",
+    "reaper:once": "tsx src/index.ts reaper --once",
+    "balance": "tsx src/index.ts balance"
+  },
+  "keywords": ["sui", "blockchain", "automation"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@mysten/sui": "^1.45.0",
+    "@supabase/supabase-js": "^2.50.2",
+    "dotenv": "^16.4.7",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
+  }
+}
+

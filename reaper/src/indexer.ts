@@ -1,0 +1,209 @@
+import { SuiClient, SuiEventFilter } from "@mysten/sui/client";
+import { CONFIG } from "./config.js";
+import { Database } from "./database.js";
+import { logger } from "./logger.js";
+
+/**
+ * Indexer Service
+ * Listens to on-chain events and updates the database
+ */
+export class Indexer {
+  private client: SuiClient;
+  private db: Database;
+  private lastCursor: string | null = null;
+
+  constructor() {
+    this.client = new SuiClient({ url: CONFIG.suiRpcUrl });
+    this.db = new Database();
+  }
+
+  /**
+   * Start indexing events from the blockchain
+   */
+  async start() {
+    logger.info("Starting indexer service...");
+
+    // Index in a loop
+    while (true) {
+      try {
+        await this.indexEvents();
+        // Wait 10 seconds before next poll
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+      } catch (error) {
+        logger.error("Error indexing events:", error);
+        // Wait 30 seconds on error before retrying
+        await new Promise((resolve) => setTimeout(resolve, 30000));
+      }
+    }
+  }
+
+  /**
+   * Index new events from the blockchain
+   */
+  private async indexEvents() {
+    // Query for ItemThrown events
+    const itemThrownFilter: SuiEventFilter = {
+      MoveEventModule: {
+        package: CONFIG.purgatoryPackageId,
+        module: "core",
+      },
+    };
+
+    const events = await this.client.queryEvents({
+      query: itemThrownFilter,
+      cursor: this.lastCursor,
+      limit: 50,
+    });
+
+    if (events.data.length === 0) {
+      return;
+    }
+
+    logger.info(`Processing ${events.data.length} events`);
+
+    for (const event of events.data) {
+      try {
+        await this.processEvent(event);
+      } catch (error) {
+        logger.error(`Error processing event ${event.id.txDigest}:`, error);
+      }
+    }
+
+    // Update cursor for next iteration
+    this.lastCursor = events.nextCursor;
+    logger.info(`Indexed up to cursor: ${this.lastCursor}`);
+  }
+
+  /**
+   * Process a single event
+   */
+  private async processEvent(event: any) {
+    const eventType = event.type.split("::").pop();
+
+    switch (eventType) {
+      case "ItemThrown":
+        await this.handleItemThrown(event);
+        break;
+      case "ItemRestored":
+        await this.handleItemRestored(event);
+        break;
+      case "ItemPurged":
+        await this.handleItemPurged(event);
+        break;
+      default:
+        logger.debug(`Unknown event type: ${eventType}`);
+    }
+  }
+
+  /**
+   * Handle ItemThrown event
+   */
+  private async handleItemThrown(event: any) {
+    const { item_id, original_owner, timestamp } = event.parsedJson;
+
+    // Fetch object details to get type
+    try {
+      const object = await this.client.getObject({
+        id: item_id,
+        options: { showType: true },
+      });
+
+      const objectType = object.data?.type || "Unknown";
+
+      await this.db.upsertItem({
+        object_id: item_id,
+        object_type: objectType,
+        depositor: original_owner,
+        deposit_timestamp: parseInt(timestamp),
+        fee_paid: 10_000_000, // SERVICE_FEE constant (0.01 SUI)
+        status: "HELD",
+      });
+
+      logger.info(`Indexed item thrown: ${item_id}`);
+    } catch (error) {
+      logger.error(`Failed to index item ${item_id}:`, error);
+    }
+  }
+
+  /**
+   * Handle ItemRestored event
+   */
+  private async handleItemRestored(event: any) {
+    const { item_id } = event.parsedJson;
+
+    await this.db.markAsRestored(item_id);
+    logger.info(`Marked item as restored: ${item_id}`);
+  }
+
+  /**
+   * Handle ItemPurged event
+   */
+  private async handleItemPurged(event: any) {
+    const { item_id } = event.parsedJson;
+
+    await this.db.markAsPurged(item_id, event.id.txDigest);
+    logger.info(`Marked item as purged: ${item_id}`);
+  }
+
+  /**
+   * Backfill historical events
+   */
+  async backfill(fromCheckpoint?: number) {
+    logger.info("Starting backfill...");
+
+    const filter: SuiEventFilter = {
+      MoveEventModule: {
+        package: CONFIG.purgatoryPackageId,
+        module: "core",
+      },
+    };
+
+    let cursor = null;
+    let totalProcessed = 0;
+
+    while (true) {
+      const events = await this.client.queryEvents({
+        query: filter,
+        cursor,
+        limit: 50,
+      });
+
+      if (events.data.length === 0) break;
+
+      for (const event of events.data) {
+        try {
+          await this.processEvent(event);
+          totalProcessed++;
+        } catch (error) {
+          logger.error(`Error processing event:`, error);
+        }
+      }
+
+      cursor = events.nextCursor;
+      if (!events.hasNextPage) break;
+
+      logger.info(`Backfilled ${totalProcessed} events so far...`);
+    }
+
+    logger.info(`Backfill complete. Processed ${totalProcessed} events.`);
+  }
+}
+
+// CLI entry point
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const indexer = new Indexer();
+
+  // Check if backfill flag is provided
+  if (process.argv.includes("--backfill")) {
+    indexer.backfill().catch((error) => {
+      logger.error("Backfill failed:", error);
+      process.exit(1);
+    });
+  } else {
+    indexer.start().catch((error) => {
+      logger.error("Indexer failed:", error);
+      process.exit(1);
+    });
+  }
+}
+
