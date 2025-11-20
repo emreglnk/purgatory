@@ -1,0 +1,97 @@
+name: Deploy Backend to Self-Hosted Runner
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'reaper/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd reaper
+          npm install
+        working-directory: ${{ github.workspace }}
+
+      - name: Build TypeScript
+        run: |
+          cd reaper
+          npm run build
+        working-directory: ${{ github.workspace }}
+
+      - name: Setup environment
+        run: |
+          cd reaper
+          # Create .env if it doesn't exist
+          if [ ! -f .env ]; then
+            echo "Creating .env file from secrets..."
+            cat > .env << EOF
+          SUI_RPC_URL=${{ secrets.SUI_RPC_URL }}
+          SUI_NETWORK=${{ secrets.SUI_NETWORK }}
+          SUI_PRIVATE_KEY=${{ secrets.SUI_PRIVATE_KEY }}
+          PURGATORY_PACKAGE_ID=${{ secrets.PURGATORY_PACKAGE_ID }}
+          GLOBAL_PURGATORY_ID=${{ secrets.GLOBAL_PURGATORY_ID }}
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          RETENTION_PERIOD_MS=7776000000
+          BATCH_SIZE=500
+          CRON_SCHEDULE=0 */6 * * *
+          GAS_BUDGET=100000000
+          PORT=3000
+          LOG_LEVEL=info
+          EOF
+          fi
+        working-directory: ${{ github.workspace }}
+
+      - name: Restart services with PM2
+        run: |
+          cd reaper
+          
+          # Install PM2 globally if not installed
+          if ! command -v pm2 &> /dev/null; then
+            npm install -g pm2
+          fi
+          
+          # Stop existing processes (if any)
+          pm2 delete purgatory-indexer 2>/dev/null || true
+          pm2 delete purgatory-api 2>/dev/null || true
+          pm2 delete purgatory-reaper 2>/dev/null || true
+          
+          # Start services
+          pm2 start npm --name purgatory-indexer -- run indexer
+          pm2 start npm --name purgatory-api -- run api
+          pm2 start npm --name purgatory-reaper -- run reaper
+          
+          # Save PM2 process list
+          pm2 save
+          
+          # Show status
+          pm2 list
+        working-directory: ${{ github.workspace }}
+
+      - name: Health check
+        run: |
+          echo "Waiting for API to start..."
+          sleep 5
+          
+          # Check if API is responding
+          curl -f http://localhost:3000/health || echo "Warning: API health check failed"
+          
+          # Show PM2 logs (last 20 lines)
+          pm2 logs --lines 20 --nostream
+
