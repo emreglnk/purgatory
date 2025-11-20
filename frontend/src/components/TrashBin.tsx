@@ -1,5 +1,5 @@
 import { useCurrentAccount, useSuiClient } from "@mysten/dapp-kit";
-import { GLOBAL_PURGATORY_ID, PURGATORY_PACKAGE_ID } from "../config/constants";
+import { PURGATORY_PACKAGE_ID } from "../config/constants";
 import { useState, useEffect } from "react";
 import { TokenIcon } from "./TokenIcon";
 

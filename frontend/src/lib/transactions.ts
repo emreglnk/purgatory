@@ -1,5 +1,5 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { PURGATORY_PACKAGE_ID, GLOBAL_PURGATORY_ID, SERVICE_FEE, FURNACE_ADDRESS } from "../config/constants";
+import { PURGATORY_PACKAGE_ID, GLOBAL_PURGATORY_ID, SERVICE_FEE } from "../config/constants";
 import { validateObjectId, validateTypeString, validateBatchItems } from "./validation";
 
 /**

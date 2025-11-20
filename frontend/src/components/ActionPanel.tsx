@@ -39,10 +39,6 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
         throw new Error("No valid objects found");
       }
 
-      // Calculate total cost
-      const totalCost = BigInt(items.length) * SERVICE_FEE;
-      const totalSui = Number(totalCost) / 1_000_000_000;
-
       // Create transaction
       const tx = createBatchThrowAwayTransaction(items);
 
