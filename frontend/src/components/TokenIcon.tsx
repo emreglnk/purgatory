@@ -1,3 +1,5 @@
+import { getAssetPath } from "../lib/assets";
+
 interface ImageWithFallbackProps {
   src?: string;
   alt: string;
@@ -5,14 +7,16 @@ interface ImageWithFallbackProps {
 }
 
 export function ImageWithFallback({ src, alt, className = "" }: ImageWithFallbackProps) {
+  const fallbackSrc = getAssetPath("/flame-logo.svg");
+  
   const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = "/flame-logo.svg";
+    e.currentTarget.src = fallbackSrc;
     e.currentTarget.onerror = null;
   };
 
   return (
     <img
-      src={src || "/flame-logo.svg"}
+      src={src || fallbackSrc}
       alt={alt}
       className={className}
       onError={handleError}

@@ -2,6 +2,7 @@ import { useCurrentAccount, useSuiClient } from "@mysten/dapp-kit";
 import { PURGATORY_PACKAGE_ID } from "../config/constants";
 import { useState, useEffect } from "react";
 import { TokenIcon } from "./TokenIcon";
+import { getAssetPath } from "../lib/assets";
 
 interface TrashBinProps {
   onRestore: (objectId: string, objectType: string) => void;
@@ -148,7 +149,7 @@ export function TrashBin({ onRestore, refreshTrigger }: TrashBinProps) {
           </div>
         ) : items.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-zinc-600 space-y-4">
-            <img src="/flame-logo.svg" alt="Flame" className="w-24 h-24 opacity-20" />
+            <img src={getAssetPath("/flame-logo.svg")} alt="Flame" className="w-24 h-24 opacity-20" />
             <div className="text-center space-y-2">
               <p className="uppercase tracking-widest text-sm">Empty</p>
               <p className="text-xs">No items in purgatory</p>

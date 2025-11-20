@@ -2,6 +2,7 @@ import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { useState } from "react";
 import { SERVICE_FEE } from "../config/constants";
 import { createBatchThrowAwayTransaction } from "../lib/transactions";
+import { getAssetPath } from "../lib/assets";
 
 interface ActionPanelProps {
   selectedItems: Set<string>;
@@ -81,7 +82,7 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
       <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-6">
         {selectedItems.size === 0 ? (
           <>
-            <img src="/flame-logo.svg" alt="Flame" className="w-32 h-32 opacity-20" />
+            <img src={getAssetPath("/flame-logo.svg")} alt="Flame" className="w-32 h-32 opacity-20" />
             <div className="text-center space-y-2">
               <p className="text-zinc-500 uppercase tracking-widest text-sm">
                 Ready for Disposal

@@ -5,6 +5,7 @@ import { ActionPanel } from "./components/ActionPanel";
 import { TrashBin } from "./components/TrashBin";
 import { createRestoreTransaction } from "./lib/transactions";
 import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { getAssetPath } from "./lib/assets";
 
 function App() {
   const account = useCurrentAccount();
@@ -62,7 +63,7 @@ function App() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-red-500 selection:text-white">
       <header className="border-b border-zinc-800 p-6 flex justify-between items-center bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <img src="/flame-logo.svg" alt="Purgatory" className="w-10 h-10" />
+          <img src={getAssetPath("/flame-logo.svg")} alt="Purgatory" className="w-10 h-10" />
           <h1 className="text-2xl font-bold tracking-wider uppercase text-red-600">Purgatory</h1>
         </div>
         <ConnectButton />
