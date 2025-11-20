@@ -96,30 +96,49 @@ export class Indexer {
   }
 
   /**
-   * Handle ItemThrown event
+   * Handle ItemThrown event (with Reputation Oracle support)
    */
   private async handleItemThrown(event: any) {
-    const { item_id, original_owner, timestamp } = event.parsedJson;
+    const { item_id, item_type, original_owner, reason, timestamp } = event.parsedJson;
 
-    // Fetch object details to get type
     try {
-      const object = await this.client.getObject({
-        id: item_id,
-        options: { showType: true },
-      });
+      const objectType = item_type || "Unknown";
+      const disposalReason = reason !== undefined ? parseInt(reason) : 0;
 
-      const objectType = object.data?.type || "Unknown";
-
+      // 1. Store the item in purgatory_items
       await this.db.upsertItem({
         object_id: item_id,
         object_type: objectType,
         depositor: original_owner,
         deposit_timestamp: parseInt(timestamp),
         fee_paid: 10_000_000, // SERVICE_FEE constant (0.01 SUI)
+        disposal_reason: disposalReason,
         status: "HELD",
       });
 
-      logger.info(`Indexed item thrown: ${item_id}`);
+      // 2. Record individual disposal report (for transparency)
+      await this.db.recordDisposalReport({
+        object_id: item_id,
+        object_type: objectType,
+        reporter_address: original_owner,
+        reason: disposalReason,
+        tx_digest: event.id.txDigest,
+        timestamp: parseInt(timestamp),
+      });
+
+      // 3. Update collection reputation statistics
+      await this.db.updateCollectionReputation(
+        objectType,
+        disposalReason,
+        original_owner
+      );
+
+      logger.info(`Indexed item thrown: ${item_id} (reason: ${disposalReason})`);
+      
+      // Log if this is a malicious report
+      if (disposalReason === 2) {
+        logger.warn(`⚠️ MALICIOUS report for collection: ${objectType}`);
+      }
     } catch (error) {
       logger.error(`Failed to index item ${item_id}:`, error);
     }

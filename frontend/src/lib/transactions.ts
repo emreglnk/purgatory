@@ -89,10 +89,15 @@ export function createPurgeTransaction(itemId: string, itemType: string) {
 }
 
 /**
- * Batch throw away transaction for multiple items
+ * Batch throw away transaction for multiple items with disposal reason
  * Note: This requires knowing the type of each object
+ * @param items - Array of objects with id and type
+ * @param reason - Disposal reason code (0=JUNK, 1=SPAM, 2=MALICIOUS)
  */
-export function createBatchThrowAwayTransaction(items: Array<{ id: string; type: string }>) {
+export function createBatchThrowAwayTransaction(
+  items: Array<{ id: string; type: string }>,
+  reason: number = 0
+) {
   // Validate all items first (max 50 items per batch)
   const validatedItems = validateBatchItems(items, 50);
   
@@ -108,7 +113,8 @@ export function createBatchThrowAwayTransaction(items: Array<{ id: string; type:
         tx.object(GLOBAL_PURGATORY_ID),
         tx.object(id),
         coin,
-        tx.object("0x6"),
+        tx.pure.u8(reason), // Disposal reason for reputation oracle
+        tx.object("0x6"), // Clock
       ],
     });
   });

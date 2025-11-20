@@ -12,7 +12,8 @@
     "indexer:backfill": "tsx src/index.ts indexer --backfill",
     "reaper": "tsx src/index.ts reaper",
     "reaper:once": "tsx src/index.ts reaper --once",
-    "balance": "tsx src/index.ts balance"
+    "balance": "tsx src/index.ts balance",
+    "api": "tsx src/api.ts"
   },
   "keywords": ["sui", "blockchain", "automation"],
   "author": "",
@@ -21,11 +22,15 @@
     "@mysten/sui": "^1.45.0",
     "@supabase/supabase-js": "^2.50.2",
     "dotenv": "^16.4.7",
-    "node-cron": "^3.0.3"
+    "node-cron": "^3.0.3",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
     "@types/node-cron": "^3.0.11",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3"
   }

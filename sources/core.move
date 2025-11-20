@@ -16,6 +16,9 @@ module purgatory::core {
     use sui::dynamic_object_field as dof;
     use sui::event;
     use sui::table::{Self, Table};
+    use std::type_name::{Self};
+    use std::string::{Self, String};
+    use std::ascii;
 
     // =========================================================================
     // Constants
@@ -35,6 +38,19 @@ module purgatory::core {
     const DEAD_ADDRESS: address = @0x000000000000000000000000000000000000dead;
 
     // =========================================================================
+    // Disposal Reason Codes (Reputation Oracle)
+    // =========================================================================
+    
+    /// JUNK: Worthless but harmless items
+    const REASON_JUNK: u8 = 0;
+    
+    /// SPAM: Unwanted marketing/airdrop items
+    const REASON_SPAM: u8 = 1;
+    
+    /// MALICIOUS: Dangerous contracts (wallet drainers, scams)
+    const REASON_MALICIOUS: u8 = 2;
+
+    // =========================================================================
     // Error Codes
     // =========================================================================
 
@@ -46,6 +62,8 @@ module purgatory::core {
     const E_RETENTION_NOT_OVER: u64 = 2;
     /// Error: Only admin can perform this action.
     const E_NOT_ADMIN: u64 = 3;
+    /// Error: Invalid disposal reason code.
+    const E_INVALID_REASON: u64 = 4;
 
     // =========================================================================
     // Structs
@@ -67,6 +85,7 @@ module purgatory::core {
         original_owner: address,
         deposit_timestamp: u64,
         fee_paid: u64,
+        reason: u8, // Why this item was disposed (for reputation oracle)
     }
 
     // =========================================================================
@@ -74,9 +93,12 @@ module purgatory::core {
     // =========================================================================
 
     /// Emitted when an item is thrown into Purgatory.
+    /// This event powers the Reputation Oracle system.
     public struct ItemThrown has copy, drop {
         item_id: ID,
+        item_type: String, // Full type path (e.g., "0x123::nft::Hero")
         original_owner: address,
+        reason: u8, // Disposal reason: 0=JUNK, 1=SPAM, 2=MALICIOUS
         timestamp: u64,
     }
 
@@ -115,45 +137,55 @@ module purgatory::core {
         init(ctx);
     }
 
-    /// Throws an item into Purgatory.
+    /// Throws an item into Purgatory with a disposal reason.
     /// Requires a payment of SERVICE_FEE (0.1 SUI).
     /// The item is stored as a Dynamic Object Field on the GlobalPurgatory object.
+    /// The reason code creates an immutable on-chain record for the Reputation Oracle.
     public fun throw_away<T: key + store>(
         purgatory: &mut GlobalPurgatory,
         item: T,
         payment: Coin<SUI>,
+        reason: u8, // Disposal reason: 0=JUNK, 1=SPAM, 2=MALICIOUS
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        // 1. Validate Payment (use current_fee from purgatory)
+        // 1. Validate Reason Code
+        assert!(reason <= REASON_MALICIOUS, E_INVALID_REASON);
+
+        // 2. Validate Payment (use current_fee from purgatory)
         assert!(coin::value(&payment) >= purgatory.current_fee, E_INSUFFICIENT_PAYMENT);
 
-        // 2. Collect Fee
-        // In a real scenario, we might split the coin if overpaid, but for simplicity
-        // and gas optimization based on specs, we take the whole coin if it meets the requirement
-        // or expect exact payment. Here we just transfer the coin object to the Furnace.
+        // 3. Collect Fee
         transfer::public_transfer(payment, FURNACE_ADDRESS);
 
         let item_id = object::id(&item);
         let original_owner = tx_context::sender(ctx);
         let timestamp = clock::timestamp_ms(clock);
 
-        // 3. Create Record
+        // 4. Get type information for reputation tracking
+        let item_type = type_name::with_defining_ids<T>();
+        let item_type_ascii = type_name::into_string(item_type);
+        let item_type_string = string::utf8(ascii::into_bytes(item_type_ascii));
+
+        // 5. Create Record
         let record = TrashRecord {
             original_owner,
             deposit_timestamp: timestamp,
             fee_paid: purgatory.current_fee,
+            reason, // Store reason for potential future queries
         };
 
-        // 4. Store Item and Record
-        // We use the item's ID as the key for both the table record and the dynamic object field.
+        // 6. Store Item and Record
         table::add(&mut purgatory.manifest, item_id, record);
         dof::add(&mut purgatory.id, item_id, item);
 
-        // 5. Emit Event
+        // 7. Emit Event (Powers the Reputation Oracle)
+        // This immutable on-chain record enables community-driven spam detection
         event::emit(ItemThrown {
             item_id,
+            item_type: item_type_string,
             original_owner,
+            reason,
             timestamp,
         });
     }

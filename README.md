@@ -3,9 +3,14 @@
   
   # Purgatory
   
-  **Permanent Asset Disposal System on Sui Network**
+  **Permanent Asset Disposal System + Reputation Oracle on Sui Network**
   
-  Clean your wallet. Remove unwanted NFTs and tokens. 90-day recovery period.
+  Clean your wallet. Report spam/scams. Build a safer ecosystem. 90-day recovery period.
+  
+  ## ✨ New: Reputation Oracle
+  🏷️ Tag disposals | 🛡️ Community protection | 📊 Public API | 🔒 Sybil-resistant
+  
+  👉 **[What's New](./_dev_WHATS_NEW_REPUTATION_ORACLE.md)** | **[Quick Start](./_dev_REPUTATION_ORACLE_QUICKSTART.md)** | **[Deploy Guide](./_dev_DEPLOYMENT_REPUTATION_ORACLE.md)**
   
   [![Sui Network](https://img.shields.io/badge/Sui-Testnet-blue)](https://suiscan.xyz/testnet/object/0x492b807af1a2523208aefa995f4f97ce03f5fc16becbcc6032ede04c78fe3c5d)
   [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)

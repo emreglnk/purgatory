@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS purgatory_items (
     depositor TEXT NOT NULL,
     deposit_timestamp BIGINT NOT NULL,
     fee_paid BIGINT NOT NULL,
+    disposal_reason SMALLINT DEFAULT 0, -- 0=JUNK, 1=SPAM, 2=MALICIOUS (Reputation Oracle)
     
     -- Status tracking
     status TEXT NOT NULL CHECK (status IN ('HELD', 'RESTORED', 'PURGED')),
@@ -82,7 +83,59 @@ FROM purgatory_items
 GROUP BY status;
 
 -- Comment documentation
+-- =========================================================================
+-- REPUTATION ORACLE: Collection Statistics
+-- =========================================================================
+
+-- Aggregated statistics for each NFT/Token type (Reputation Oracle)
+CREATE TABLE IF NOT EXISTS collection_reputation (
+    object_type TEXT PRIMARY KEY,
+    junk_count INTEGER DEFAULT 0,
+    spam_count INTEGER DEFAULT 0,
+    malicious_count INTEGER DEFAULT 0,
+    total_reports INTEGER DEFAULT 0,
+    unique_reporters INTEGER DEFAULT 0,
+    first_reported_at TIMESTAMPTZ DEFAULT NOW(),
+    last_reported_at TIMESTAMPTZ DEFAULT NOW(),
+    reputation_score DECIMAL(5, 2) DEFAULT 0.0, -- Calculated score (0-100, lower is worse)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for reputation queries
+CREATE INDEX idx_collection_reputation_score ON collection_reputation(reputation_score);
+CREATE INDEX idx_collection_malicious ON collection_reputation(malicious_count DESC);
+CREATE INDEX idx_collection_spam ON collection_reputation(spam_count DESC);
+
+-- =========================================================================
+-- REPUTATION ORACLE: Individual Reports (for transparency & disputes)
+-- =========================================================================
+
+-- Track individual disposal reports for transparency
+CREATE TABLE IF NOT EXISTS disposal_reports (
+    id SERIAL PRIMARY KEY,
+    object_id TEXT NOT NULL,
+    object_type TEXT NOT NULL,
+    reporter_address TEXT NOT NULL,
+    reason SMALLINT NOT NULL, -- 0=JUNK, 1=SPAM, 2=MALICIOUS
+    tx_digest TEXT NOT NULL,
+    timestamp BIGINT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for report queries
+CREATE INDEX idx_disposal_reports_object_type ON disposal_reports(object_type);
+CREATE INDEX idx_disposal_reports_reporter ON disposal_reports(reporter_address);
+CREATE INDEX idx_disposal_reports_reason ON disposal_reports(reason);
+CREATE INDEX idx_disposal_reports_timestamp ON disposal_reports(timestamp DESC);
+
+-- =========================================================================
+-- Views & Comments
+-- =========================================================================
+
 COMMENT ON TABLE purgatory_items IS 'Tracks all items deposited into purgatory';
 COMMENT ON TABLE reaper_logs IS 'Logs reaper bot execution history';
+COMMENT ON TABLE collection_reputation IS 'Reputation oracle: aggregate reports per collection';
+COMMENT ON TABLE disposal_reports IS 'Reputation oracle: individual disposal reports for transparency';
 COMMENT ON VIEW purgatory_stats IS 'Aggregate statistics for monitoring';
 

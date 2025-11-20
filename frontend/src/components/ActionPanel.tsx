@@ -1,6 +1,6 @@
 import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { useState } from "react";
-import { SERVICE_FEE } from "../config/constants";
+import { SERVICE_FEE, DISPOSAL_REASONS } from "../config/constants";
 import { createBatchThrowAwayTransaction } from "../lib/transactions";
 import { getAssetPath } from "../lib/assets";
 
@@ -15,6 +15,7 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
   const suiClient = useSuiClient();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reason, setReason] = useState<number>(0); // Default: JUNK
 
   const handleThrowAway = async () => {
     if (selectedItems.size === 0) return;
@@ -40,8 +41,8 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
         throw new Error("No valid objects found");
       }
 
-      // Create transaction
-      const tx = createBatchThrowAwayTransaction(items);
+      // Create transaction with reason
+      const tx = createBatchThrowAwayTransaction(items, reason);
 
       // Execute transaction
       signAndExecute(
@@ -96,6 +97,27 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
               <div className="text-7xl font-black text-red-500">{selectedItems.size}</div>
               <div className="text-zinc-400 uppercase tracking-widest text-sm">
                 Items Selected
+              </div>
+
+              {/* Disposal Reason Selector */}
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-sm p-4 space-y-2">
+                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest">
+                  Why are you disposing?
+                </label>
+                <select
+                  value={reason}
+                  onChange={(e) => setReason(Number(e.target.value))}
+                  className="w-full p-3 bg-zinc-900 border border-zinc-700 rounded-sm text-zinc-300 font-mono text-sm focus:border-red-500 focus:outline-none"
+                >
+                  {DISPOSAL_REASONS.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.emoji} {r.label} - {r.description}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-zinc-600 italic">
+                  Your choice creates an immutable on-chain reputation record
+                </p>
               </div>
 
               <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-4 space-y-2 text-xs font-mono">
