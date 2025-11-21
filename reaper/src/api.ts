@@ -22,7 +22,14 @@ export class ReputationAPI {
   }
 
   private setupMiddleware() {
-    this.app.use(cors());
+    // Enable CORS for all origins (or specific origin for production)
+    this.app.use(cors({
+      origin: '*', // Allow all origins (for testing)
+      methods: ['GET', 'POST', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: false
+    }));
+    
     this.app.use(express.json());
     
     // Request logging
