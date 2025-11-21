@@ -1,4 +1,4 @@
-import { SuiClient, SuiEventFilter } from "@mysten/sui/client";
+import { SuiClient, SuiEventFilter, EventId } from "@mysten/sui/client";
 import { CONFIG } from "./config.js";
 import { Database } from "./database.js";
 import { logger } from "./logger.js";
@@ -10,7 +10,7 @@ import { logger } from "./logger.js";
 export class Indexer {
   private client: SuiClient;
   private db: Database;
-  private lastCursor: string | null = null;
+  private lastCursor: EventId | null = null;
 
   constructor() {
     this.client = new SuiClient({ url: CONFIG.suiRpcUrl });
@@ -70,8 +70,8 @@ export class Indexer {
     }
 
     // Update cursor for next iteration
-    this.lastCursor = events.nextCursor;
-    logger.info(`Indexed up to cursor: ${this.lastCursor}`);
+    this.lastCursor = events.nextCursor ?? null;
+    logger.info(`Indexed up to cursor: ${JSON.stringify(this.lastCursor)}`);
   }
 
   /**
