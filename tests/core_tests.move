@@ -1,6 +1,6 @@
 #[test_only]
 module purgatory::core_tests {
-    use purgatory::core::{Self, GlobalPurgatory};
+    use purgatory::core::{Self, GlobalPurgatory, AdminCap};
     use sui::test_scenario::{Self as ts};
     use sui::clock::{Self};
     use sui::coin::{Self};
@@ -38,7 +38,7 @@ module purgatory::core_tests {
 
             let payment = coin::mint_for_testing<SUI>(SERVICE_FEE, ts::ctx(scenario));
 
-            core::throw_away(&mut purgatory, junk, payment, &clock, ts::ctx(scenario));
+            core::throw_away(&mut purgatory, junk, payment, 0, &clock, ts::ctx(scenario)); // reason: 0 (JUNK)
 
             ts::return_shared(purgatory);
             clock::destroy_for_testing(clock);
@@ -86,7 +86,7 @@ module purgatory::core_tests {
             junk_id_opt = option::some(object::id(&junk));
             let payment = coin::mint_for_testing<SUI>(SERVICE_FEE, ts::ctx(scenario));
 
-            core::throw_away(&mut purgatory, junk, payment, &clock, ts::ctx(scenario));
+            core::throw_away(&mut purgatory, junk, payment, 0, &clock, ts::ctx(scenario)); // reason: 0 (JUNK)
 
             ts::return_shared(purgatory);
             clock::destroy_for_testing(clock);
@@ -128,7 +128,7 @@ module purgatory::core_tests {
             let junk = JunkItem { id: object::new(ts::ctx(scenario)) };
             junk_id_opt = option::some(object::id(&junk));
             let payment = coin::mint_for_testing<SUI>(SERVICE_FEE, ts::ctx(scenario));
-            core::throw_away(&mut purgatory, junk, payment, &clock, ts::ctx(scenario));
+            core::throw_away(&mut purgatory, junk, payment, 0, &clock, ts::ctx(scenario)); // reason: 0 (JUNK)
             ts::return_shared(purgatory);
             clock::destroy_for_testing(clock);
         };
@@ -156,20 +156,22 @@ module purgatory::core_tests {
 
         { core::init_for_testing(ts::ctx(scenario)); };
 
-        // Admin updates the fee
+        // Admin updates the fee with AdminCap
         ts::next_tx(scenario, ADMIN);
         {
+            let admin_cap = ts::take_from_sender<AdminCap>(scenario);
             let mut purgatory = ts::take_shared<GlobalPurgatory>(scenario);
             
             // Check initial fee
             assert!(core::get_current_fee(&purgatory) == SERVICE_FEE, 0);
             
             // Update to new fee
-            core::update_fee(&mut purgatory, 5_000_000, ts::ctx(scenario));
+            core::update_fee(&admin_cap, &mut purgatory, 5_000_000);
             
             // Verify update
             assert!(core::get_current_fee(&purgatory) == 5_000_000, 1);
             
+            ts::return_to_sender(scenario, admin_cap);
             ts::return_shared(purgatory);
         };
 
@@ -177,50 +179,117 @@ module purgatory::core_tests {
     }
 
     #[test]
-    #[expected_failure(abort_code = core::E_NOT_ADMIN)]
-    fun test_non_admin_cannot_update_fee() {
+    fun test_admin_update_furnace() {
         let mut scenario_val = ts::begin(ADMIN);
         let scenario = &mut scenario_val;
 
         { core::init_for_testing(ts::ctx(scenario)); };
 
-        // Non-admin tries to update fee (should fail)
-        ts::next_tx(scenario, USER1);
-        {
-            let mut purgatory = ts::take_shared<GlobalPurgatory>(scenario);
-            core::update_fee(&mut purgatory, 5_000_000, ts::ctx(scenario));
-            ts::return_shared(purgatory);
-        };
-
-        ts::end(scenario_val);
-    }
-
-    #[test]
-    fun test_transfer_admin() {
-        let mut scenario_val = ts::begin(ADMIN);
-        let scenario = &mut scenario_val;
-
-        { core::init_for_testing(ts::ctx(scenario)); };
-
-        // Transfer admin to USER1
+        // Admin updates furnace address with AdminCap
         ts::next_tx(scenario, ADMIN);
         {
+            let admin_cap = ts::take_from_sender<AdminCap>(scenario);
             let mut purgatory = ts::take_shared<GlobalPurgatory>(scenario);
-            assert!(core::get_admin(&purgatory) == ADMIN, 0);
             
-            core::transfer_admin(&mut purgatory, USER1, ts::ctx(scenario));
+            // Check initial furnace (should be ADMIN)
+            assert!(core::get_furnace_address(&purgatory) == ADMIN, 0);
             
-            assert!(core::get_admin(&purgatory) == USER1, 1);
+            // Update to new furnace
+            core::update_furnace(&admin_cap, &mut purgatory, USER1);
+            
+            // Verify update
+            assert!(core::get_furnace_address(&purgatory) == USER1, 1);
+            
+            ts::return_to_sender(scenario, admin_cap);
             ts::return_shared(purgatory);
         };
 
-        // Now USER1 can update fee
+        ts::end(scenario_val);
+    }
+
+    #[test]
+    fun test_furnace_receives_fees() {
+        let mut scenario_val = ts::begin(ADMIN);
+        let scenario = &mut scenario_val;
+
+        { core::init_for_testing(ts::ctx(scenario)); };
+
+        // User throws away item, furnace should receive fee
         ts::next_tx(scenario, USER1);
         {
             let mut purgatory = ts::take_shared<GlobalPurgatory>(scenario);
-            core::update_fee(&mut purgatory, 20_000_000, ts::ctx(scenario));
-            assert!(core::get_current_fee(&purgatory) == 20_000_000, 2);
+            let mut clock = clock::create_for_testing(ts::ctx(scenario));
+            clock::set_for_testing(&mut clock, 1000);
+
+            let junk = JunkItem { id: object::new(ts::ctx(scenario)) };
+            let payment = coin::mint_for_testing<SUI>(SERVICE_FEE, ts::ctx(scenario));
+
+            core::throw_away(&mut purgatory, junk, payment, 0, &clock, ts::ctx(scenario));
+
             ts::return_shared(purgatory);
+            clock::destroy_for_testing(clock);
+        };
+
+        // Furnace (ADMIN) should have received the fee
+        ts::next_tx(scenario, ADMIN);
+        {
+            let coin = ts::take_from_sender<coin::Coin<SUI>>(scenario);
+            assert!(coin::value(&coin) == SERVICE_FEE, 0);
+            ts::return_to_sender(scenario, coin);
+        };
+
+        ts::end(scenario_val);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = core::E_INVALID_REASON)]
+    fun test_invalid_reason() {
+        let mut scenario_val = ts::begin(ADMIN);
+        let scenario = &mut scenario_val;
+
+        { core::init_for_testing(ts::ctx(scenario)); };
+
+        // Try to throw away with invalid reason (> 2)
+        ts::next_tx(scenario, USER1);
+        {
+            let mut purgatory = ts::take_shared<GlobalPurgatory>(scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(scenario));
+            clock::set_for_testing(&mut clock, 1000);
+
+            let junk = JunkItem { id: object::new(ts::ctx(scenario)) };
+            let payment = coin::mint_for_testing<SUI>(SERVICE_FEE, ts::ctx(scenario));
+
+            core::throw_away(&mut purgatory, junk, payment, 99, &clock, ts::ctx(scenario)); // Invalid reason
+
+            ts::return_shared(purgatory);
+            clock::destroy_for_testing(clock);
+        };
+
+        ts::end(scenario_val);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = core::E_INSUFFICIENT_PAYMENT)]
+    fun test_insufficient_payment() {
+        let mut scenario_val = ts::begin(ADMIN);
+        let scenario = &mut scenario_val;
+
+        { core::init_for_testing(ts::ctx(scenario)); };
+
+        // Try to throw away with insufficient payment
+        ts::next_tx(scenario, USER1);
+        {
+            let mut purgatory = ts::take_shared<GlobalPurgatory>(scenario);
+            let mut clock = clock::create_for_testing(ts::ctx(scenario));
+            clock::set_for_testing(&mut clock, 1000);
+
+            let junk = JunkItem { id: object::new(ts::ctx(scenario)) };
+            let payment = coin::mint_for_testing<SUI>(SERVICE_FEE - 1, ts::ctx(scenario)); // Too low
+
+            core::throw_away(&mut purgatory, junk, payment, 0, &clock, ts::ctx(scenario));
+
+            ts::return_shared(purgatory);
+            clock::destroy_for_testing(clock);
         };
 
         ts::end(scenario_val);

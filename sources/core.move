@@ -30,25 +30,15 @@ module purgatory::core {
     /// Service fee: 0.01 SUI (10,000,000 MIST).
     const SERVICE_FEE: u64 = 10_000_000;
 
-    /// Address where fees are sent (The Furnace).
-    /// @dev This must match the admin address in frontend constants.
-    const FURNACE_ADDRESS: address = @0xb88dc1cd6785c977e59496cc62b3bac69af40730db0797f7eb4d3db43a8628fd; 
-
     /// The "Dead Address" for items that cannot be burned programmatically.
     const DEAD_ADDRESS: address = @0x000000000000000000000000000000000000dead;
 
     // =========================================================================
     // Disposal Reason Codes (Reputation Oracle)
     // =========================================================================
-    
-    /// JUNK: Worthless but harmless items
-    const REASON_JUNK: u8 = 0;
-    
-    /// SPAM: Unwanted marketing/airdrop items
-    const REASON_SPAM: u8 = 1;
-    
-    /// MALICIOUS: Dangerous contracts (wallet drainers, scams)
-    const REASON_MALICIOUS: u8 = 2;
+    // Reason values: 0=JUNK, 1=SPAM, 2=MALICIOUS
+    // Maximum valid reason code
+    const MAX_REASON: u8 = 2;
 
     // =========================================================================
     // Error Codes
@@ -60,24 +50,27 @@ module purgatory::core {
     const E_NOT_OWNER: u64 = 1;
     /// Error: The retention period has not yet passed.
     const E_RETENTION_NOT_OVER: u64 = 2;
-    /// Error: Only admin can perform this action.
-    const E_NOT_ADMIN: u64 = 3;
     /// Error: Invalid disposal reason code.
-    const E_INVALID_REASON: u64 = 4;
+    const E_INVALID_REASON: u64 = 3;
 
     // =========================================================================
     // Structs
     // =========================================================================
+
+    /// Admin capability. Holder can modify fee and transfer admin rights.
+    public struct AdminCap has key, store {
+        id: UID,
+    }
 
     /// The shared object that holds all items in Purgatory.
     public struct GlobalPurgatory has key {
         id: UID,
         /// Tracks metadata for every item in the Purgatory using the item's ID as the key.
         manifest: Table<ID, TrashRecord>,
-        /// Admin address that can modify settings
-        admin: address,
         /// Current service fee (can be updated by admin)
         current_fee: u64,
+        /// Address where fees are sent (can be updated by admin)
+        furnace_address: address,
     }
 
     /// Metadata record for an item in Purgatory.
@@ -120,16 +113,22 @@ module purgatory::core {
     // Functions
     // =========================================================================
 
-    /// Module initializer. Creates the GlobalPurgatory and shares it.
+    /// Module initializer. Creates the GlobalPurgatory and AdminCap.
     fun init(ctx: &mut TxContext) {
-        let admin_address = tx_context::sender(ctx);
+        let deployer = tx_context::sender(ctx);
         let purgatory = GlobalPurgatory {
             id: object::new(ctx),
             manifest: table::new(ctx),
-            admin: admin_address,
             current_fee: SERVICE_FEE,
+            furnace_address: deployer, // Initial furnace is deployer
         };
         transfer::share_object(purgatory);
+        
+        // Transfer AdminCap to deployer
+        let admin_cap = AdminCap {
+            id: object::new(ctx),
+        };
+        transfer::transfer(admin_cap, deployer);
     }
 
     #[test_only]
@@ -150,13 +149,13 @@ module purgatory::core {
         ctx: &mut TxContext
     ) {
         // 1. Validate Reason Code
-        assert!(reason <= REASON_MALICIOUS, E_INVALID_REASON);
+        assert!(reason <= MAX_REASON, E_INVALID_REASON);
 
         // 2. Validate Payment (use current_fee from purgatory)
         assert!(coin::value(&payment) >= purgatory.current_fee, E_INSUFFICIENT_PAYMENT);
 
-        // 3. Collect Fee
-        transfer::public_transfer(payment, FURNACE_ADDRESS);
+        // 3. Collect Fee and send to furnace
+        transfer::public_transfer(payment, purgatory.furnace_address);
 
         let item_id = object::id(&item);
         let original_owner = tx_context::sender(ctx);
@@ -251,27 +250,25 @@ module purgatory::core {
     }
 
     // =========================================================================
-    // Admin Functions
+    // Admin Functions (Require AdminCap)
     // =========================================================================
 
-    /// Update the service fee (admin only)
+    /// Update the service fee (requires AdminCap)
     public fun update_fee(
+        _admin_cap: &AdminCap,
         purgatory: &mut GlobalPurgatory,
         new_fee: u64,
-        ctx: &TxContext
     ) {
-        assert!(tx_context::sender(ctx) == purgatory.admin, E_NOT_ADMIN);
         purgatory.current_fee = new_fee;
     }
 
-    /// Transfer admin rights to a new address (admin only)
-    public fun transfer_admin(
+    /// Update the furnace address where fees are sent (requires AdminCap)
+    public fun update_furnace(
+        _admin_cap: &AdminCap,
         purgatory: &mut GlobalPurgatory,
-        new_admin: address,
-        ctx: &TxContext
+        new_furnace: address,
     ) {
-        assert!(tx_context::sender(ctx) == purgatory.admin, E_NOT_ADMIN);
-        purgatory.admin = new_admin;
+        purgatory.furnace_address = new_furnace;
     }
 
     /// Get current fee (view function)
@@ -279,9 +276,9 @@ module purgatory::core {
         purgatory.current_fee
     }
 
-    /// Get admin address (view function)
-    public fun get_admin(purgatory: &GlobalPurgatory): address {
-        purgatory.admin
+    /// Get furnace address (view function)
+    public fun get_furnace_address(purgatory: &GlobalPurgatory): address {
+        purgatory.furnace_address
     }
 }
 
