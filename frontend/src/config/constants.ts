@@ -26,7 +26,7 @@ export const RETENTION_PERIOD = 7_776_000_000;
 export const NETWORK = "testnet" as const;
 
 // Reputation Oracle API
-export const REPUTATION_API_URL = "http://dev.iyi.im:3000";
+export const REPUTATION_API_URL = "https://purgatory-api.iyi.im";
 
 // =========================================================================
 // Disposal Reasons (Reputation Oracle)
@@ -44,21 +44,21 @@ export const DISPOSAL_REASONS: DisposalReason[] = [
   {
     value: 0,
     label: "Junk",
-    emoji: "🗑️",
+    emoji: "",
     description: "Worthless but harmless items",
     color: "text-zinc-500",
   },
   {
     value: 1,
     label: "Spam",
-    emoji: "📢",
+    emoji: "",
     description: "Unwanted marketing/airdrops",
     color: "text-yellow-500",
   },
   {
     value: 2,
     label: "Malicious",
-    emoji: "💀",
+    emoji: "",
     description: "Dangerous/scam items",
     color: "text-red-600",
   },

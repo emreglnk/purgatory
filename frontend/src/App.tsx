@@ -113,12 +113,21 @@ function App() {
           <span className="uppercase tracking-widest">Purgatory</span>
           <span className="text-zinc-800">•</span>
           <a 
-            href="https://suiscan.xyz/testnet/object/0x492b807af1a2523208aefa995f4f97ce03f5fc16becbcc6032ede04c78fe3c5d"
+            href={`https://suiscan.xyz/testnet/object/${import.meta.env.VITE_PURGATORY_PACKAGE_ID || "0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f"}`}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-red-500 transition-colors text-xs"
           >
             View Contract
+          </a>
+          <span className="text-zinc-800">•</span>
+          <a 
+            href="https://github.com/emreglnk/purgatory"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-red-500 transition-colors text-xs"
+          >
+            GitHub
           </a>
         </div>
       </footer>

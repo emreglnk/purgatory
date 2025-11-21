@@ -1,6 +1,6 @@
 import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { useState } from "react";
-import { SERVICE_FEE, DISPOSAL_REASONS } from "../config/constants";
+import { DISPOSAL_REASONS } from "../config/constants";
 import { createBatchThrowAwayTransaction } from "../lib/transactions";
 import { getAssetPath } from "../lib/assets";
 
@@ -70,8 +70,6 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
     }
   };
 
-  const totalCost = Number(BigInt(selectedItems.size) * SERVICE_FEE) / 1_000_000_000;
-
   return (
     <div className="border-2 border-zinc-800 rounded-lg bg-zinc-900/20 flex flex-col h-[600px]">
       {/* Header */}
@@ -111,28 +109,13 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
                 >
                   {DISPOSAL_REASONS.map((r) => (
                     <option key={r.value} value={r.value}>
-                      {r.emoji} {r.label} - {r.description}
+                      {r.label} - {r.description}
                     </option>
                   ))}
                 </select>
                 <p className="text-xs text-zinc-600 italic">
                   Your choice creates an immutable on-chain reputation record
                 </p>
-              </div>
-
-              <div className="bg-zinc-900 border border-zinc-800 rounded-sm p-4 space-y-2 text-xs font-mono">
-                <div className="flex justify-between text-zinc-500">
-                  <span>Service Fee:</span>
-                  <span>{totalCost.toFixed(2)} SUI</span>
-                </div>
-                <div className="flex justify-between text-zinc-500">
-                  <span>Retention:</span>
-                  <span>90 Days</span>
-                </div>
-                <div className="border-t border-zinc-800 pt-2 mt-2 flex justify-between text-zinc-300 font-bold">
-                  <span>Total Cost:</span>
-                  <span>{totalCost.toFixed(2)} SUI</span>
-                </div>
               </div>
 
               {error && (
