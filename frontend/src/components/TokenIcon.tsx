@@ -57,7 +57,7 @@ export function TokenIcon({ name, imageUrl, className = "w-12 h-12", type = "" }
 // Helper to get coin icon URL from a registry
 export function getCoinIconUrl(coinType: string): string | undefined {
   const coinRegistry: Record<string, string> = {
-    "0x2::sui::SUI": "https://raw.githubusercontent.com/MystenLabs/sui/main/apps/icons/sui/icons/sui-token.svg",
+    "0x2::sui::SUI": "https://cryptologos.cc/logos/sui-sui-logo.svg",
     // Add more coins as needed
   };
 

@@ -103,6 +103,8 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
                   Why are you disposing?
                 </label>
                 <select
+                  name="disposal-reason"
+                  title="Disposal Reason"
                   value={reason}
                   onChange={(e) => setReason(Number(e.target.value))}
                   className="w-full p-3 bg-zinc-900 border border-zinc-700 rounded-sm text-zinc-300 font-mono text-sm focus:border-red-500 focus:outline-none"
@@ -127,6 +129,7 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
 
               <div className="space-y-2 w-full">
                 <button
+                  type="button"
                   onClick={handleThrowAway}
                   disabled={isProcessing}
                   className="w-full px-8 py-4 bg-red-600 text-black font-bold uppercase tracking-widest hover:bg-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -135,6 +138,7 @@ export function ActionPanel({ selectedItems, onSuccess, onClear }: ActionPanelPr
                 </button>
 
                 <button
+                  type="button"
                   onClick={onClear}
                   disabled={isProcessing}
                   className="w-full px-4 py-2 border border-zinc-700 text-zinc-400 text-xs uppercase tracking-widest hover:border-zinc-500 hover:text-zinc-300 transition-colors"
