@@ -1,108 +1,86 @@
-<div align="center">
-  <img src="frontend/public/flame-logo.svg" alt="Purgatory Logo" width="120" height="120" />
-  
-  # Purgatory
-  
-  **Permanent Asset Disposal System + Reputation Oracle on Sui Network**
-  
-  Clean your wallet. Report spam/scams. Build a safer ecosystem. 90-day recovery period.
-  
-  ## ✨ New: Reputation Oracle
-  🏷️ Tag disposals | 🛡️ Community protection | 📊 Public API | 🔒 Sybil-resistant
-  
-  👉 **[What's New](./_dev_WHATS_NEW_REPUTATION_ORACLE.md)** | **[Quick Start](./_dev_REPUTATION_ORACLE_QUICKSTART.md)** | **[Deploy Guide](./_dev_DEPLOYMENT_REPUTATION_ORACLE.md)**
-  
-  [![Sui Network](https://img.shields.io/badge/Sui-Testnet-blue)](https://suiscan.xyz/testnet/object/0x492b807af1a2523208aefa995f4f97ce03f5fc16becbcc6032ede04c78fe3c5d)
-  [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-  
-</div>
+# Purgatory
+
+**Asset Disposal System for Sui Network**
+
+Clean your wallet by disposing unwanted NFTs and tokens with a 90-day recovery period. Built-in reputation oracle helps identify spam and malicious collections through community reports.
+
+[![Sui Network](https://img.shields.io/badge/Sui-Testnet-blue)](https://suiscan.xyz/testnet/object/0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://emreglnk.github.io/purgatory/)
 
 ---
 
 ## Live Deployment
 
-| Component | Address/Link |
-|-----------|-------------|
-| **Package ID** | [`0xe36223ecd83de21cef81ef6170c4c4660e08f24b5fdcf0b494d94063c0877490`](https://suiscan.xyz/testnet/object/0xe36223ecd83de21cef81ef6170c4c4660e08f24b5fdcf0b494d94063c0877490) |
-| **GlobalPurgatory** | [`0x492b807af1a2523208aefa995f4f97ce03f5fc16becbcc6032ede04c78fe3c5d`](https://suiscan.xyz/testnet/object/0x492b807af1a2523208aefa995f4f97ce03f5fc16becbcc6032ede04c78fe3c5d) |
-| **UpgradeCap** | `0x3b7f73f31527ac299d55c82120c657b404b6f69a49e8c0d3a31307d6bb09d6d5` |
+| Component | Address |
+|-----------|---------|
+| **Package ID** | [`0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f`](https://suiscan.xyz/testnet/object/0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f) |
+| **GlobalPurgatory** | [`0xa4ae907455c747ff4261d1f5d7f786f33dd1df88333c861efe7df1d7babf02fc`](https://suiscan.xyz/testnet/object/0xa4ae907455c747ff4261d1f5d7f786f33dd1df88333c861efe7df1d7babf02fc) |
+| **UpgradeCap** | `0xff87d87eea119f0875bce7e386af713733ec81d5c50cf40279c50526673f63a3` |
 | **Network** | Sui Testnet |
-| **Service Fee** | 0.01 SUI (adjustable by admin) |
-| **Version** | v3 (Security Fixes - Nov 2024) |
+| **Service Fee** | 0.01 SUI per item |
+
+## Features
+
+### Smart Contract
+- Dispose unwanted assets to purgatory with 0.01 SUI fee
+- 90-day recovery window to restore items
+- Auto-purge expired items to dead address
+- Type-safe generic support for any asset type
+- Batch operations via Programmable Transaction Blocks
+- On-chain reputation tracking (disposal reasons: junk, spam, malicious)
+
+### Frontend
+- Wallet integration with Sui wallets
+- Real-time reputation badges for collections
+- Visual icons for NFTs and tokens
+- Batch disposal with reason tagging
+- One-click recovery from trash bin
+- Responsive design
+
+### Backend (Reputation Oracle)
+- Event indexer monitors all disposals
+- Public API for reputation queries
+- Aggregated statistics per collection type
+- Sybil-resistant scoring (unique reporters counted)
+- Automated purge scheduler
 
 ## Project Structure
 
 ```
 purgatory/
 ├── sources/
-│   └── core.move              # Smart contract (270 lines)
-│
+│   └── core.move              # Smart contract
 ├── tests/
-│   └── core_tests.move        # Unit tests (6/6 passing)
-│
+│   └── core_tests.move        # Unit tests
 ├── frontend/
-│   ├── public/
-│   │   └── flame-logo.svg     # Custom logo
-│   └── src/
-│       ├── components/
-│       │   ├── WalletScanner.tsx   # Asset viewer
-│       │   ├── ActionPanel.tsx     # Disposal UI
-│       │   ├── TrashBin.tsx        # Recovery interface
-│       │   └── TokenIcon.tsx       # Icon system
-│       ├── config/
-│       │   └── constants.ts        # Contract addresses
-│       └── lib/
-│           └── transactions.ts     # PTB builders
-│
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   ├── config/            # Contract addresses
+│   │   └── lib/               # Transaction builders
+│   └── public/
+│       └── flame-logo.svg     # Logo
 ├── reaper/
 │   ├── src/
 │   │   ├── indexer.ts         # Event listener
 │   │   ├── reaper.ts          # Purge bot
-│   │   ├── database.ts        # Supabase ORM
-│   │   └── logger.ts          # Logging
-│   ├── schema.sql             # Database schema
-│   └── SETUP.md               # Deployment guide
-│
+│   │   ├── api.ts             # REST API
+│   │   └── database.ts        # Database interface
+│   └── schema.sql             # PostgreSQL schema
 ├── Move.toml
-├── .gitignore
 └── README.md
 ```
-
-## Features
-
-### Smart Contract
-- **Disposal System**: Send unwanted assets to purgatory with 0.01 SUI fee
-- **Recovery Period**: 90-day window to restore items
-- **Auto-Purge**: Expired items automatically sent to dead address
-- **Upgradeable**: Admin can adjust fees and transfer ownership
-- **Type-Safe**: Generic support for any asset type (NFTs, Tokens)
-- **Gas Efficient**: Batch operations via Programmable Transaction Blocks
-
-### Frontend
-- **Wallet Integration**: Seamless connection with Sui wallets
-- **Smart Filtering**: Auto-detect and exclude system objects
-- **Visual Icons**: NFT thumbnails, coin logos, fallback icons
-- **Real-Time Updates**: Event-based tracking of disposed items
-- **Restore Functionality**: One-click recovery from trash bin
-- **Responsive Design**: Works on desktop and mobile
-
-### Reaper (Backend)
-- **Event Indexer**: Monitors blockchain for disposal events
-- **Scheduled Purging**: Cron-based automatic cleanup
-- **Batch Processing**: Handle up to 500 items per run
-- **Supabase Integration**: PostgreSQL storage for tracking
-- **Monitoring & Logs**: Comprehensive execution history
-
 
 ## How It Works
 
 ### For Users
 
-1. **Connect** your Sui wallet
-2. **Select** unwanted NFTs or tokens from your inventory
-3. **Dispose** items with 0.01 SUI per item fee
-4. **Restore** anytime within 90 days from trash bin
-5. **Forget** about them - auto-purged after expiration
+1. Connect your Sui wallet
+2. Select unwanted NFTs or tokens
+3. Choose disposal reason (junk/spam/malicious)
+4. Pay 0.01 SUI per item
+5. Restore anytime within 90 days
+6. Items auto-purged after expiration
 
 ### For Developers
 
@@ -110,36 +88,51 @@ purgatory/
 // Dispose items
 const tx = createBatchThrowAwayTransaction([
   { id: "0x123...", type: "0xabc::nft::MyNFT" }
-]);
+], reason);
 await signAndExecute({ transaction: tx });
 
 // Restore items
 const tx = createRestoreTransaction(itemId, itemType);
 await signAndExecute({ transaction: tx });
 
-// Admin: Update fee
-sui client call \
-  --function update_fee \
-  --args {purgatory_id} 20000000
+// Query reputation
+const response = await fetch(
+  `https://purgatory-api.iyi.im/api/reputation/${encodeURIComponent(objectType)}`
+);
+const reputation = await response.json();
 ```
 
-## 🔧 Configuration
+## Reputation Oracle API
 
-Update contract addresses in `frontend/src/config/constants.ts`:
+**Base URL**: `https://purgatory-api.iyi.im`
 
-```typescript
-export const PURGATORY_PACKAGE_ID = "0xbd6d...";
-export const GLOBAL_PURGATORY_ID = "0x581a...";
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/reputation/:objectType` | Get reputation for a collection |
+| `GET /api/malicious` | List top malicious collections |
+| `GET /api/flagged` | List all flagged collections |
+| `POST /api/check-batch` | Batch check multiple types |
+
+**Response format:**
+```json
+{
+  "object_type": "0x...::nft::MyNFT",
+  "junk_count": 150,
+  "spam_count": 25,
+  "malicious_count": 5,
+  "total_reports": 180,
+  "unique_reporters": 42,
+  "reputation_score": 75
+}
 ```
 
 ## Configuration
 
 | Parameter | Value | Adjustable |
 |-----------|-------|------------|
-| **Service Fee** | 0.01 SUI (10M MIST) | ✅ Yes (admin only) |
-| **Retention Period** | 90 days | ❌ Hardcoded |
-| **Dead Address** | `0x0...dead` | ❌ Hardcoded |
-
+| **Service Fee** | 0.01 SUI (10M MIST) | Yes (admin only) |
+| **Retention Period** | 90 days | No (hardcoded) |
+| **Dead Address** | `0x000000000000000000000000000000000000dead` | No (hardcoded) |
 
 ## Tech Stack
 
@@ -147,25 +140,48 @@ export const GLOBAL_PURGATORY_ID = "0x581a...";
 |-------|-----------|
 | **Blockchain** | Sui Network (Move 2024) |
 | **Smart Contract** | Move Language |
-| **Frontend** | React 19 + TypeScript + Vite |
-| **Styling** | Tailwind CSS v3 |
+| **Frontend** | React + TypeScript + Vite |
+| **Styling** | Tailwind CSS |
 | **Wallet** | @mysten/dapp-kit |
-| **Backend** | Node.js + TypeScript |
+| **Backend** | Node.js + Express |
 | **Database** | Supabase (PostgreSQL) |
-| **Scheduling** | node-cron |
+| **Hosting** | GitHub Pages (Frontend), Self-hosted (Backend) |
+
+## Local Development
+
+### Smart Contract
+```bash
+sui move build
+sui move test
+sui client publish --gas-budget 100000000
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Backend
+```bash
+cd reaper
+npm install
+npm run indexer     # Start event indexer
+npm run api         # Start REST API
+npm run reaper      # Start purge scheduler
+```
 
 ## Resources
 
-- **Live Contract**: [View on Suiscan](https://suiscan.xyz/testnet/object/0x492b807af1a2523208aefa995f4f97ce03f5fc16becbcc6032ede04c78fe3c5d)
+- **Live dApp**: [emreglnk.github.io/purgatory](https://emreglnk.github.io/purgatory/)
+- **Contract Explorer**: [View on Suiscan](https://suiscan.xyz/testnet/object/0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f)
+- **API Endpoint**: [purgatory-api.iyi.im](https://purgatory-api.iyi.im/health)
 - **Sui Documentation**: [docs.sui.io](https://docs.sui.io)
-- **dApp Kit**: [SDK Docs](https://sdk.mystenlabs.com/dapp-kit)
 
 ## Contributing
 
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## License
 
@@ -173,11 +189,4 @@ MIT License - see LICENSE file for details
 
 ---
 
-<div align="center">
-  <img src="frontend/public/flame-logo.svg" alt="Purgatory" width="60" />
-  
-  **Built on Sui Network**
-  
-  [Report Bug](../../issues) · [Request Feature](../../issues)
-</div>
-
+**Built on Sui Network** | [GitHub](https://github.com/emreglnk/purgatory)
