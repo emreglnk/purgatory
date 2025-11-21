@@ -186,18 +186,16 @@ export function WalletScanner({ onSelectItem, selectedItems }: WalletScannerProp
                     {/* Reputation Badge */}
                     {!loadingReputation && (
                       <div className="mt-2">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border rounded ${badge.color}`}>
-                          <span>{badge.emoji}</span>
-                          <span>{badge.label}</span>
+                        <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border rounded ${badge.color}`}>
+                          {badge.label}
                         </span>
                       </div>
                     )}
                     
                     {loadingReputation && (
                       <div className="mt-2">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] text-zinc-600 uppercase tracking-wider">
-                          <span>⏳</span>
-                          <span>Checking...</span>
+                        <span className="inline-flex items-center px-2 py-0.5 text-[10px] text-zinc-600 uppercase tracking-wider">
+                          Checking...
                         </span>
                       </div>
                     )}

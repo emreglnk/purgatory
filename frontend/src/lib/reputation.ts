@@ -114,7 +114,7 @@ export function getReputationBadge(reputation: CollectionReputation | null): {
 } {
   if (!reputation || reputation.total_reports === 0) {
     return {
-      emoji: "❓",
+      emoji: "",
       label: "Unknown",
       color: "text-zinc-500 bg-zinc-900/50 border-zinc-700",
       severity: "unknown",
@@ -124,7 +124,7 @@ export function getReputationBadge(reputation: CollectionReputation | null): {
   // Check for malicious (highest priority)
   if (reputation.malicious_count >= 10) {
     return {
-      emoji: "💀",
+      emoji: "",
       label: `Malicious (${reputation.malicious_count} reports)`,
       color: "text-red-500 bg-red-900/20 border-red-600",
       severity: "malicious",
@@ -134,7 +134,7 @@ export function getReputationBadge(reputation: CollectionReputation | null): {
   // Check for spam
   if (reputation.spam_count >= 50) {
     return {
-      emoji: "📢",
+      emoji: "",
       label: `Spam (${reputation.spam_count} reports)`,
       color: "text-yellow-500 bg-yellow-900/20 border-yellow-600",
       severity: "spam",
@@ -144,7 +144,7 @@ export function getReputationBadge(reputation: CollectionReputation | null): {
   // Check for junk (many reports)
   if (reputation.junk_count >= 100) {
     return {
-      emoji: "🗑️",
+      emoji: "",
       label: `Junk (${reputation.junk_count} reports)`,
       color: "text-zinc-400 bg-zinc-900/20 border-zinc-600",
       severity: "junk",
@@ -154,25 +154,25 @@ export function getReputationBadge(reputation: CollectionReputation | null): {
   // Check reputation score
   if (reputation.reputation_score < 30 && reputation.total_reports >= 20) {
     return {
-      emoji: "⚠️",
+      emoji: "",
       label: `Low Score (${reputation.reputation_score.toFixed(0)}/100)`,
       color: "text-orange-500 bg-orange-900/20 border-orange-600",
       severity: "spam",
     };
   }
 
-  // Has some reports but not flagged
+  // Has some reports but not flagged - show as gray/subtle
   if (reputation.total_reports > 0) {
     return {
-      emoji: "ℹ️",
+      emoji: "",
       label: `${reputation.total_reports} reports`,
-      color: "text-blue-500 bg-blue-900/20 border-blue-600",
+      color: "text-zinc-500 bg-zinc-900/50 border-zinc-700",
       severity: "clean",
     };
   }
 
   return {
-    emoji: "✓",
+    emoji: "",
     label: "Clean",
     color: "text-green-500 bg-green-900/20 border-green-600",
     severity: "clean",
