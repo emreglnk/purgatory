@@ -113,7 +113,7 @@ function App() {
           <span className="uppercase tracking-widest">Purgatory</span>
           <span className="text-zinc-800">•</span>
           <a 
-            href={`https://suiscan.xyz/testnet/object/${import.meta.env.VITE_PURGATORY_PACKAGE_ID || "0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f"}`}
+            href={`https://suiscan.xyz/testnet/object/${import.meta.env.VITE_PURGATORY_PACKAGE_ID || "0x936fa3cbe1c4d8ed7c87f71e84a680b99e25f4846a8984c4583eae17d44058c0"}`}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-red-500 transition-colors text-xs"

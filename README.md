@@ -14,11 +14,12 @@ Clean your wallet by disposing unwanted NFTs and tokens with a 90-day recovery p
 
 | Component | Address |
 |-----------|---------|
-| **Package ID** | [`0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f`](https://suiscan.xyz/testnet/object/0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f) |
-| **GlobalPurgatory** | [`0xa4ae907455c747ff4261d1f5d7f786f33dd1df88333c861efe7df1d7babf02fc`](https://suiscan.xyz/testnet/object/0xa4ae907455c747ff4261d1f5d7f786f33dd1df88333c861efe7df1d7babf02fc) |
-| **UpgradeCap** | `0xff87d87eea119f0875bce7e386af713733ec81d5c50cf40279c50526673f63a3` |
+| **Package ID** | [`0x936fa3cbe1c4d8ed7c87f71e84a680b99e25f4846a8984c4583eae17d44058c0`](https://suiscan.xyz/testnet/object/0x936fa3cbe1c4d8ed7c87f71e84a680b99e25f4846a8984c4583eae17d44058c0) |
+| **GlobalPurgatory** | [`0x7ffe6b844e3d76e9e7f0c39f34e749dc1cd44c561bad0ddd2d9a331d6d5f497f`](https://suiscan.xyz/testnet/object/0x7ffe6b844e3d76e9e7f0c39f34e749dc1cd44c561bad0ddd2d9a331d6d5f497f) |
+| **AdminCap** | `0x17cf05e3e359a593e89e64a6f2fd33a1cff21565f5d194d0a1af8d3c3a58a287` |
+| **UpgradeCap** | `0x1dbe7936b712945bbda10dc2c010a03e0eedb2bde476014b9343ea62cfdbcfff` |
 | **Network** | Sui Testnet |
-| **Service Fee** | 0.01 SUI per item |
+| **Service Fee** | 0.01 SUI per item (adjustable by admin) |
 
 ## Features
 
@@ -175,7 +176,7 @@ npm run reaper      # Start purge scheduler
 ## Resources
 
 - **Live dApp**: [emreglnk.github.io/purgatory](https://emreglnk.github.io/purgatory/)
-- **Contract Explorer**: [View on Suiscan](https://suiscan.xyz/testnet/object/0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f)
+- **Contract Explorer**: [View on Suiscan](https://suiscan.xyz/testnet/object/0x936fa3cbe1c4d8ed7c87f71e84a680b99e25f4846a8984c4583eae17d44058c0)
 - **API Endpoint**: [purgatory-api.iyi.im](https://purgatory-api.iyi.im/health)
 - **Sui Documentation**: [docs.sui.io](https://docs.sui.io)
 

@@ -7,9 +7,9 @@ export const CONFIG = {
   suiRpcUrl: process.env.SUI_RPC_URL || "https://fullnode.testnet.sui.io:443",
   suiPrivateKey: process.env.SUI_PRIVATE_KEY || "",
 
-  // Contract (v4 with Reputation Oracle)
-  purgatoryPackageId: process.env.PURGATORY_PACKAGE_ID || "0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f",
-  globalPurgatoryId: process.env.GLOBAL_PURGATORY_ID || "0xa4ae907455c747ff4261d1f5d7f786f33dd1df88333c861efe7df1d7babf02fc",
+  // Contract (with AdminCap & Dynamic Furnace)
+  purgatoryPackageId: process.env.PURGATORY_PACKAGE_ID || "0x936fa3cbe1c4d8ed7c87f71e84a680b99e25f4846a8984c4583eae17d44058c0",
+  globalPurgatoryId: process.env.GLOBAL_PURGATORY_ID || "0x7ffe6b844e3d76e9e7f0c39f34e749dc1cd44c561bad0ddd2d9a331d6d5f497f",
 
   // Supabase
   supabaseUrl: process.env.SUPABASE_URL || "",

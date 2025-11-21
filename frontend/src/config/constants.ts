@@ -1,14 +1,17 @@
 // Contract Constants and Configuration
 // Deployed to Sui Testnet (v4 with Reputation Oracle - Nov 2024)
 
-// Package ID from deployment (v4 with Reputation Oracle)
-export const PURGATORY_PACKAGE_ID = "0xda37e846ff23a56de6e21606778edd9974357b9e830bdd2fa46c3024fbfb131f";
+// Package ID from deployment (with AdminCap & Dynamic Furnace)
+export const PURGATORY_PACKAGE_ID = "0x936fa3cbe1c4d8ed7c87f71e84a680b99e25f4846a8984c4583eae17d44058c0";
 
 // GlobalPurgatory shared object ID
-export const GLOBAL_PURGATORY_ID = "0xa4ae907455c747ff4261d1f5d7f786f33dd1df88333c861efe7df1d7babf02fc";
+export const GLOBAL_PURGATORY_ID = "0x7ffe6b844e3d76e9e7f0c39f34e749dc1cd44c561bad0ddd2d9a331d6d5f497f";
 
 // UpgradeCap object ID (for future upgrades)
-export const UPGRADE_CAP_ID = "0xff87d87eea119f0875bce7e386af713733ec81d5c50cf40279c50526673f63a3";
+export const UPGRADE_CAP_ID = "0x1dbe7936b712945bbda10dc2c010a03e0eedb2bde476014b9343ea62cfdbcfff";
+
+// AdminCap object ID (for admin operations)
+export const ADMIN_CAP_ID = "0x17cf05e3e359a593e89e64a6f2fd33a1cff21565f5d194d0a1af8d3c3a58a287";
 
 // Admin address that receives fees (your deployer address)
 export const FURNACE_ADDRESS = "0xb88dc1cd6785c977e59496cc62b3bac69af40730db0797f7eb4d3db43a8628fd";
