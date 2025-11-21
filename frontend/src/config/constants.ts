@@ -25,6 +25,9 @@ export const RETENTION_PERIOD = 7_776_000_000;
 // Network configuration
 export const NETWORK = "testnet" as const;
 
+// Reputation Oracle API
+export const REPUTATION_API_URL = "http://dev.iyi.im:3000";
+
 // =========================================================================
 // Disposal Reasons (Reputation Oracle)
 // =========================================================================

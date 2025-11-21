@@ -1,6 +1,8 @@
 import { useCurrentAccount, useSuiClientInfiniteQuery } from "@mysten/dapp-kit";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TokenIcon, getCoinIconUrl } from "./TokenIcon";
+import { checkBatch, getReputationBadge } from "../lib/reputation";
+import type { CollectionReputation } from "../lib/reputation";
 
 interface WalletScannerProps {
   onSelectItem: (objectId: string) => void;
@@ -9,6 +11,8 @@ interface WalletScannerProps {
 
 export function WalletScanner({ onSelectItem, selectedItems }: WalletScannerProps) {
   const account = useCurrentAccount();
+  const [reputationData, setReputationData] = useState<Map<string, CollectionReputation | null>>(new Map());
+  const [loadingReputation, setLoadingReputation] = useState(false);
 
   const { data, isLoading, isError, error, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
     useSuiClientInfiniteQuery(
@@ -33,6 +37,40 @@ export function WalletScanner({ onSelectItem, selectedItems }: WalletScannerProp
       refetch();
     }
   }, [account, refetch]);
+
+  // Fetch reputation data for all objects
+  useEffect(() => {
+    const fetchReputations = async () => {
+      if (!data?.pages || data.pages.length === 0) return;
+
+      setLoadingReputation(true);
+      
+      const allObjects = data.pages.flatMap((page) => page.data);
+      const types = [...new Set(allObjects.map(obj => obj.data?.type).filter(Boolean))] as string[];
+
+      if (types.length === 0) {
+        setLoadingReputation(false);
+        return;
+      }
+
+      try {
+        const results = await checkBatch(types);
+        const reputationMap = new Map<string, CollectionReputation | null>();
+        
+        for (const [type, result] of results.entries()) {
+          reputationMap.set(type, result.reputation);
+        }
+        
+        setReputationData(reputationMap);
+      } catch (error) {
+        console.error("Failed to fetch reputations:", error);
+      } finally {
+        setLoadingReputation(false);
+      }
+    };
+
+    fetchReputations();
+  }, [data]);
 
   // Flatten all pages into a single list of objects
   const allObjects = data?.pages.flatMap((page) => page.data) || [];
@@ -100,6 +138,10 @@ export function WalletScanner({ onSelectItem, selectedItems }: WalletScannerProp
               if (!imageUrl && type.includes("::coin::Coin")) {
                 imageUrl = getCoinIconUrl(type.replace("0x2::coin::Coin<", "").replace(">", ""));
               }
+
+              // Get reputation badge
+              const reputation = reputationData.get(type) ?? null;
+              const badge = getReputationBadge(reputation);
               
               const isSelected = selectedItems.has(objectId);
 
@@ -140,6 +182,25 @@ export function WalletScanner({ onSelectItem, selectedItems }: WalletScannerProp
                     <div className="text-[10px] text-zinc-600 font-mono truncate">
                       {objectId}
                     </div>
+                    
+                    {/* Reputation Badge */}
+                    {!loadingReputation && (
+                      <div className="mt-2">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border rounded ${badge.color}`}>
+                          <span>{badge.emoji}</span>
+                          <span>{badge.label}</span>
+                        </span>
+                      </div>
+                    )}
+                    
+                    {loadingReputation && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] text-zinc-600 uppercase tracking-wider">
+                          <span>⏳</span>
+                          <span>Checking...</span>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
