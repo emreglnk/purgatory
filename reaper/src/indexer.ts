@@ -102,7 +102,12 @@ export class Indexer {
     const { item_id, item_type, original_owner, reason, timestamp } = event.parsedJson;
 
     try {
-      const objectType = item_type || "Unknown";
+      // Normalize object type - ensure it starts with 0x
+      let objectType = item_type || "Unknown";
+      if (objectType !== "Unknown" && !objectType.startsWith("0x")) {
+        objectType = "0x" + objectType;
+      }
+      
       const disposalReason = reason !== undefined ? parseInt(reason) : 0;
 
       // 1. Store the item in purgatory_items
